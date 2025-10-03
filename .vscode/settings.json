@@ -1,8 +1,9 @@
 {
     "cSpell.words": [
         "geocoder",
+        "pepnumber",
         "phonemumbers"
     ],
-    "python-envs.defaultEnvManager": "ms-python.python:venv",
+    "python-envs.defaultEnvManager": "ms-python.python:system",
     "python-envs.pythonProjects": []
 }

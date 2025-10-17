@@ -1,0 +1,6 @@
+phonenumbers
+requests
+folium
+geopy
+opencage
+python-dotenv

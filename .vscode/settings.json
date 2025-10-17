@@ -1,11 +1,15 @@
 {
     "cSpell.words": [
+        "dateutil",
         "dotenv",
         "geocoder",
+        "geopy",
         "mylocation",
         "opencage",
+        "pady",
         "pepnumber",
-        "phonemumbers"
+        "phonemumbers",
+        "phonenumbers"
     ],
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "python-envs.pythonProjects": []

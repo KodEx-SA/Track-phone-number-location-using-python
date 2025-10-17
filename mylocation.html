@@ -17,7 +17,7 @@
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
-                #map_d72c953eb4273ab2fcda13956cbd131e {
+                #map_95e7b356fcfdacbab38cda18eba79c15 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -54,14 +54,14 @@
 <body>
     
     
-            <div class="folium-map" id="map_d72c953eb4273ab2fcda13956cbd131e" ></div>
+            <div class="folium-map" id="map_95e7b356fcfdacbab38cda18eba79c15" ></div>
         
 </body>
 <script>
     
     
-            var map_d72c953eb4273ab2fcda13956cbd131e = L.map(
-                "map_d72c953eb4273ab2fcda13956cbd131e",
+            var map_95e7b356fcfdacbab38cda18eba79c15 = L.map(
+                "map_95e7b356fcfdacbab38cda18eba79c15",
                 {
                     center: [-28.8166236, 24.991639],
                     crs: L.CRS.EPSG3857,
@@ -78,14 +78,14 @@
 
         
     
-            var tile_layer_f448bf17a4ed770aa5cbf0438995ab92 = L.tileLayer(
-                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            var tile_layer_7b4f68f8fdc93b50f1a59895879fc61d = L.tileLayer(
+                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
                 {
   "minZoom": 0,
-  "maxZoom": 19,
-  "maxNativeZoom": 19,
+  "maxZoom": 18,
+  "maxNativeZoom": 18,
   "noWrap": false,
-  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "attribution": "Map data \u00a9 OpenStreetMap contributors, Esri",
   "subdomains": "abc",
   "detectRetina": false,
   "tms": false,
@@ -95,28 +95,28 @@
             );
         
     
-            tile_layer_f448bf17a4ed770aa5cbf0438995ab92.addTo(map_d72c953eb4273ab2fcda13956cbd131e);
+            tile_layer_7b4f68f8fdc93b50f1a59895879fc61d.addTo(map_95e7b356fcfdacbab38cda18eba79c15);
         
     
-            var marker_20dcaeb1335529868b39cc0dd14875ed = L.marker(
+            var marker_7cb56daeb42080c13a07e52b5682c871 = L.marker(
                 [-28.8166236, 24.991639],
                 {
 }
-            ).addTo(map_d72c953eb4273ab2fcda13956cbd131e);
+            ).addTo(map_95e7b356fcfdacbab38cda18eba79c15);
         
     
-        var popup_23666b6cd2598322e8298bfc4b955cb7 = L.popup({
+        var popup_34e4be9595e12ee1826c558cf75a9590 = L.popup({
   "maxWidth": "100%",
 });
 
         
             
-                var html_304ce3a486e762c189b6bfcb653a7357 = $(`<div id="html_304ce3a486e762c189b6bfcb653a7357" style="width: 100.0%; height: 100.0%;">South Africa, South Africa</div>`)[0];
-                popup_23666b6cd2598322e8298bfc4b955cb7.setContent(html_304ce3a486e762c189b6bfcb653a7357);
+                var html_dc7bcfd328c7655a2e6c387867ff901a = $(`<div id="html_dc7bcfd328c7655a2e6c387867ff901a" style="width: 100.0%; height: 100.0%;">South Africa, South Africa</div>`)[0];
+                popup_34e4be9595e12ee1826c558cf75a9590.setContent(html_dc7bcfd328c7655a2e6c387867ff901a);
             
         
 
-        marker_20dcaeb1335529868b39cc0dd14875ed.bindPopup(popup_23666b6cd2598322e8298bfc4b955cb7)
+        marker_7cb56daeb42080c13a07e52b5682c871.bindPopup(popup_34e4be9595e12ee1826c558cf75a9590)
         ;
 
         

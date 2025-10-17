@@ -1,2 +1,6 @@
 .env
-phone.py
+geocode_cache.json
+history.json
+phone_lookup_export.csv
+mylocation.html
+history_map.html

@@ -1,7 +1,8 @@
 phonenumbers
-requests
+opencage
 folium
 geopy
-opencage
 python-dotenv
 python-dateutil
+ttkbootstrap
+pyperclip

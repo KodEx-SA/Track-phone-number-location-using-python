@@ -7,3 +7,6 @@ python-dateutil
 ttkbootstrap
 pyperclip
 requests
+streamlit
+streamlit-folium
+pandas

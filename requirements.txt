@@ -10,3 +10,6 @@ requests
 streamlit
 streamlit-folium
 pandas
+kivy
+buildozer
+pyjnius

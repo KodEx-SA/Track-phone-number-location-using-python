@@ -1,10 +1,14 @@
 {
     "cSpell.words": [
+        "autoclass",
         "bootstyle",
+        "buildozer",
         "dateutil",
         "dotenv",
         "geocoder",
         "geopy",
+        "jnius",
+        "kivy",
         "mylocation",
         "opencage",
         "padx",

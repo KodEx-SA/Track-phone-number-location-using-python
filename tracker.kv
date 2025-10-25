@@ -1,0 +1,70 @@
+<TrackerApp>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+        TextInput:
+            id: input
+            hint_text: 'Enter phone number (+1234567890)'
+            multiline: False
+            size_hint: 1, 0.1
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.1
+            Label:
+                text: 'Map Style:'
+                size_hint: 0.3, 1
+            CheckBox:
+                id: standard
+                group: 'map'
+                active: True
+                size_hint: 0.2, 1
+            Label:
+                text: 'Standard'
+                size_hint: 0.2, 1
+            CheckBox:
+                id: satellite
+                group: 'map'
+                size_hint: 0.2, 1
+            Label:
+                text: 'Satellite'
+                size_hint: 0.2, 1
+            CheckBox:
+                id: terrain
+                group: 'map'
+                size_hint: 0.2, 1
+            Label:
+                text: 'Terrain'
+                size_hint: 0.2, 1
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.1
+            CheckBox:
+                id: ip_check
+                active: False
+            Label:
+                text: 'Include IP-Based Location'
+        Button:
+            text: 'Track Number'
+            size_hint: 1, 0.1
+            on_press: app.track(self)
+        ScrollView:
+            Label:
+                id: results
+                text: 'Results will appear here...'
+                halign: 'left'
+                valign: 'top'
+                text_size: root.width - 20, None
+                size: self.texture_size
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.1
+            Button:
+                text: 'View History'
+                on_press: app.show_history(self)
+            Button:
+                text: 'Clear History'
+                on_press: app.clear_history(self)
+            Button:
+                text: 'Export History'
+                on_press: app.export_history(self)

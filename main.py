@@ -1,190 +1,159 @@
-import phonenumbers
-from phonenumbers import geocoder, carrier, timezone
-from opencage.geocoder import OpenCageGeocode
-import folium
-from dotenv import load_dotenv
-import os
-import json
-import csv
-from datetime import datetime
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.checkbox import CheckBox
+from kivy.uix.popup import Popup
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
+from kivy.properties import StringProperty, BooleanProperty
+from kivy.utils import platform
+from tracker import track_phone_number, get_history, clear_history, export_full_history
 import webbrowser
+import os
 
-# Load environment variables
-load_dotenv()
-key = os.getenv("OPENCAGE_API_KEY")
-if not key:
-    raise ValueError("OPENCAGE_API_KEY not found in .env file")
+class TrackerApp(App):
+    map_style = StringProperty("Standard")
+    include_ip = BooleanProperty(False)
 
-# Load or initialize cache
-cache_file = "geocode_cache.json"
-try:
-    with open(cache_file, "r") as f:
-        content = f.read().strip()
-        cache = json.loads(content) if content else {}
-except (FileNotFoundError, json.JSONDecodeError):
-    cache = {}
+    def build(self):
+        self.title = 'Phone Number Location Tracker'
+        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
 
-def save_cache():
-    with open(cache_file, "w") as f:
-        json.dump(cache, f, indent=4)
+        # Input
+        self.input = TextInput(hint_text='Enter phone number (+1234567890)', multiline=False, size_hint=(1, 0.1))
+        layout.add_widget(self.input)
 
-# Load or initialize history
-history_file = "history.json"
-try:
-    with open(history_file, "r") as f:
-        content = f.read().strip()
-        history = json.loads(content) if content else []
-except (FileNotFoundError, json.JSONDecodeError):
-    history = []
+        # Options
+        options = BoxLayout(orientation='horizontal', size_hint=(1, 0.1))
+        options.add_widget(Label(text='Map Style:', size_hint=(0.3, 1)))
+        self.standard = CheckBox(group='map', active=True, size_hint=(0.2, 1))
+        self.standard.bind(active=self.set_standard)
+        options.add_widget(self.standard)
+        options.add_widget(Label(text='Standard', size_hint=(0.2, 1)))
+        self.satellite = CheckBox(group='map', size_hint=(0.2, 1))
+        self.satellite.bind(active=self.set_satellite)
+        options.add_widget(self.satellite)
+        options.add_widget(Label(text='Satellite', size_hint=(0.2, 1)))
+        self.terrain = CheckBox(group='map', size_hint=(0.2, 1))
+        self.terrain.bind(active=self.set_terrain)
+        options.add_widget(self.terrain)
+        options.add_widget(Label(text='Terrain', size_hint=(0.2, 1)))
+        layout.add_widget(options)
 
-def save_history(number, location, detailed_location, service_provider, time_zone, lat, lng):
-    history.append({
-        "number": number,
-        "country": location,
-        "detailed_location": detailed_location if detailed_location else "Not available",
-        "service_provider": service_provider if service_provider else "Unknown",
-        "time_zone": str(time_zone) if time_zone else "Unknown",
-        "latitude": lat,
-        "longitude": lng,
-        "timestamp": datetime.now().isoformat()
-    })
-    with open(history_file, "w") as f:
-        json.dump(history, f, indent=4)
+        # IP Checkbox
+        ip_box = BoxLayout(orientation='horizontal', size_hint=(1, 0.1))
+        self.ip_check = CheckBox(active=False)
+        self.ip_check.bind(active=self.set_ip)
+        ip_box.add_widget(self.ip_check)
+        ip_box.add_widget(Label(text='Include IP-Based Location'))
+        layout.add_widget(ip_box)
 
-def view_history():
-    if not history:
-        print("No history available.")
-        return
-    for entry in history:
-        print(f"Number: {entry['number']}, Time: {entry['timestamp']}")
-        print(f"Country: {entry['country']}, Location: {entry['detailed_location']}")
-        print(f"Provider: {entry['service_provider']}, Time Zone: {entry['time_zone']}")
-        print(f"Coordinates: ({entry['latitude']}, {entry['longitude']})\n")
+        # Track Button
+        track_btn = Button(text='Track Number', size_hint=(1, 0.1))
+        track_btn.bind(on_press=self.track)
+        layout.add_widget(track_btn)
 
-def view_history_map():
-    if not history:
-        print("No history available to map.")
-        return
-    # Create a map centered on the first historical location
-    first_entry = history[0]
-    myMap = folium.Map(location=[first_entry["latitude"], first_entry["longitude"]], zoom_start=3)
-    for entry in history:
-        folium.Marker(
-            [entry["latitude"], entry["longitude"]],
-            popup=f"{entry['number']} ({entry['detailed_location']}, {entry['country']})",
-            icon=folium.Icon(color="blue")
-        ).add_to(myMap)
-    myMap.save("history_map.html")
-    print("History map saved as history_map.html")
-    webbrowser.open("history_map.html")
+        # Results
+        self.results = Label(text='Results will appear here...', halign='left', valign='top', text_size=(None, None), size_hint=(1, 0.3))
+        scroll = ScrollView()
+        scroll.add_widget(self.results)
+        layout.add_widget(scroll)
 
-def clear_history():
-    global history
-    history = []
-    with open(history_file, "w") as f:
-        json.dump(history, f, indent=4)
-    print("History cleared.")
+        # Buttons
+        buttons = BoxLayout(orientation='horizontal', size_hint=(1, 0.1))
+        history_btn = Button(text='View History')
+        history_btn.bind(on_press=self.show_history)
+        buttons.add_widget(history_btn)
+        clear_btn = Button(text='Clear History')
+        clear_btn.bind(on_press=self.clear_history)
+        buttons.add_widget(clear_btn)
+        export_btn = Button(text='Export History')
+        export_btn.bind(on_press=self.export_history)
+        buttons.add_widget(export_btn)
+        layout.add_widget(buttons)
 
-def export_to_csv(number, location, detailed_location, service_provider, time_zone, lat, lng):
-    filename = "phone_lookup_export.csv"
-    file_exists = os.path.isfile(filename)
-    with open(filename, "a", newline="") as f:
-        writer = csv.writer(f)
-        if not file_exists:
-            writer.writerow(["Phone Number", "Country", "Detailed Location", "Service Provider", "Time Zone", "Latitude", "Longitude", "Timestamp"])
-        writer.writerow([number, location, detailed_location if detailed_location else "N/A", 
-                        service_provider if service_provider else "N/A", str(time_zone) if time_zone else "N/A", 
-                        lat, lng, datetime.now().isoformat()])
+        return layout
 
-# Get phone number from user
-while True:
-    number = input("Enter phone number (with country code, e.g., +1234567890): ").strip()
-    if not number.startswith("+"):
-        print("Phone number must include country code (e.g., +1 for USA).")
-        continue
-    try:
-        pepnumber = phonenumbers.parse(number)
-        if not phonenumbers.is_valid_number(pepnumber):
-            print("Invalid phone number. Please try again.")
-            continue
-        break
-    except phonenumbers.NumberParseException:
-        print("Error parsing phone number. Ensure it includes a valid country code.")
-        continue
+    def set_standard(self, checkbox, value):
+        if value:
+            self.map_style = "Standard"
 
-# Get location details
-location = geocoder.country_name_for_number(pepnumber, "en")
-detailed_location = geocoder.description_for_number(pepnumber, "en")
-service_provider = carrier.name_for_number(pepnumber, "en")
-time_zone = timezone.time_zones_for_number(pepnumber)
+    def set_satellite(self, checkbox, value):
+        if value:
+            self.map_style = "Satellite"
 
-# Build geocoding query
-query = detailed_location if detailed_location else location
-if detailed_location and location:
-    query = f"{detailed_location}, {location}"
+    def set_terrain(self, checkbox, value):
+        if value:
+            self.map_style = "Terrain"
 
-# Check cache for geocoding result
-if query in cache:
-    lat, lng = cache[query]["lat"], cache[query]["lng"]
-    confidence = cache[query].get("confidence", "N/A")
-    print("Using cached coordinates.")
-else:
-    try:
-        geocoder_api = OpenCageGeocode(key)
-        results = geocoder_api.geocode(query)
-        if results and len(results):
-            lat = results[0]["geometry"]["lat"]
-            lng = results[0]["geometry"]["lng"]
-            confidence = results[0].get("confidence", "N/A")
-            cache[query] = {"lat": lat, "lng": lng, "confidence": confidence}
-            save_cache()
+    def set_ip(self, checkbox, value):
+        self.include_ip = value
+
+    def track(self, instance):
+        number = self.input.text.strip()
+        result = track_phone_number(number, self.map_style, self.include_ip)
+        if "error" in result:
+            self.show_popup("Error", result["error"])
+            return
+        self.results.text = (
+            f"Phone Number: {result['number']}\n"
+            f"Type: {result['number_type']}\n"
+            f"Country: {result['location']}\n"
+            f"Location: {result['detailed_location']}\n"
+            f"Provider: {result['service_provider']}\n"
+            f"Time Zone: {result['time_zone']}\n"
+            f"Coordinates: ({result['lat']}, {result['lng']})\n"
+            f"Confidence: {result['confidence']}\n"
+            f"IP Location: {result['ip_location']}\n"
+            f"Map saved as: {result['map_file']}"
+        )
+        self.show_map(result['map_file'])
+
+    def show_map(self, map_file):
+        if platform == 'android':
+            from jnius import autoclass
+            from kivy.uix.webview import WebView
+            popup = Popup(title='Map', size_hint=(0.9, 0.9))
+            webview = WebView(url=map_file)
+            popup.content = webview
+            popup.open()
         else:
-            print("Geocoding failed, no coordinates found.")
-            exit()
-    except Exception as e:
-        print(f"Geocoding error: {str(e)}")
-        exit()
+            webbrowser.open(f"file://{os.path.abspath(map_file)}")
 
-# Save to history and export
-save_history(number, location, detailed_location, service_provider, time_zone, lat, lng)
-export_to_csv(number, location, detailed_location, service_provider, time_zone, lat, lng)
+    def show_history(self, instance):
+        history = get_history()
+        if not history:
+            self.show_popup("Info", "No history available.")
+            return
+        popup = Popup(title='History', size_hint=(0.9, 0.9))
+        layout = GridLayout(cols=1, padding=10, spacing=10, size_hint_y=None)
+        layout.bind(minimum_height=layout.setter('height'))
+        for entry in history:
+            layout.add_widget(Label(
+                text=f"Number: {entry['number']} ({entry['number_type']})\n"
+                     f"Country: {entry['country']}, Location: {entry['detailed_location']}\n"
+                     f"Time: {entry['timestamp']}\n"
+                     f"IP: {entry['ip_location']}",
+                halign='left', valign='top', text_size=(None, None)
+            ))
+        scroll = ScrollView()
+        scroll.add_widget(layout)
+        popup.content = scroll
+        popup.open()
 
-# Print details
-print(f"\nPhone Number: {number}")
-print(f"Country and Location: {location} in {detailed_location if detailed_location else 'Not available'}")
-print(f"Service Provider: {service_provider if service_provider else 'Unknown'}")
-print(f"Time Zone: {time_zone if time_zone else 'Unknown'}")
-print(f"Latitude and Longitude: {lat}, {lng}")
-print(f"Geocoding Confidence: {confidence}")
-print(f"Exact Location: https://www.google.com/maps/place/{lat},{lng}")
-
-# Create and save map with style option
-map_style = input("Choose map style (1: Standard, 2: Satellite, 3: Terrain): ").strip()
-tiles = "OpenStreetMap"
-if map_style == "2":
-    tiles = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-elif map_style == "3":
-    tiles = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-
-zoom_level = 9 if detailed_location else 5
-myMap = folium.Map(location=[lat, lng], zoom_start=zoom_level, tiles=tiles, attr="Map data © OpenStreetMap contributors, Esri")
-folium.Marker([lat, lng], popup=query).add_to(myMap)
-myMap.save("mylocation.html")
-print("Map saved as mylocation.html")
-
-# Open map in browser
-webbrowser.open("mylocation.html")
-
-# History options
-while True:
-    action = input("\nOptions: [v]iew history, [m]ap history, [c]lear history, [e]xit: ").lower()
-    if action == "v":
-        view_history()
-    elif action == "m":
-        view_history_map()
-    elif action == "c":
+    def clear_history(self, instance):
         clear_history()
-    elif action == "e":
-        break
-    else:
-        print("Invalid option.")
+        self.show_popup("Success", "History cleared.")
+
+    def export_history(self, instance):
+        csv_file = export_full_history()
+        self.show_popup("Success", f"History exported to {csv_file}")
+
+    def show_popup(self, title, msg):
+        popup = Popup(title=title, content=Label(text=msg), size_hint=(0.6, 0.4))
+        popup.open()
+
+if __name__ == '__main__':
+    TrackerApp().run()

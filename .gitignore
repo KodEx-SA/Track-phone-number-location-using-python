@@ -1,7 +1,14 @@
-phone.py
 .env
 geocode_cache.json
 history.json
 phone_lookup_export.csv
+full_history.csv
+__pycache__/
+*.pyc
+venv/
+bin/
+build/
+dist/
+*.spec
 mylocation.html
 history_map.html
